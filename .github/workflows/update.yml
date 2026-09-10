@@ -1,0 +1,29 @@
+name: Update FRED
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir -p data
+          python3 << 'PY'
+          import json, urllib.request, os
+          KEY = "868312c0c2cce8f78b0bd5e57f8f172a"
+            u = f"https://api.stlouisfed.org/fred/series/observations?series_id={s}&api_key={KEY}&file_type=json&sort_order=desc&limit=1"
+            return json.loads(urllib.request.urlopen(u).read())['observations'][0]
+          w=get('WALCL'); t=get('WTREGEN'); r=get('RRPONTSYD')
+          net=float(w['value'])/1e6-float(t['value'])/1e6-float(r['value'])/1e3
+          data={"NET_T":net,"updated_at":w['date'],"source":"LIVE","w":w,"t":t,"r":r}
+          open('data/latest.json','w').write(json.dumps(data,indent=2))
+          print("LIVE NET",net)
+          PY
+      - run: |
+          git config user.name "bot"
+          git config user.email "bot@bot.com"
+          git add data/latest.json
+          git commit -m "live" || true
+          git push
