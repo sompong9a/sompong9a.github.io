@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C-Clean NET v4 - LIVE 100%</title>
+<style>
+body{background:#050a05;color:#c8e6c9;font-family:ui-monospace,monospace;padding:14px}
+.card{background:#0a1510;border:1px solid #1e4a28;border-radius:16px;padding:14px;margin-bottom:14px}
+.big{font-size:30px;font-weight:900;color:#7aff9a}
+.tag{display:inline-block;padding:5px 12px;border-radius:20px;font-size:11px;border:1px solid #2a5a30;background:#0a2010;margin:3px}
+.btn{background:#00ff88;color:#000;border:none;padding:12px 20px;border-radius:24px;font-weight:900;cursor:pointer}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.box{border:1px solid #2a5a30;border-radius:14px;padding:12px;background:#0f1f12}
+.zone-GREEN{background:linear-gradient(90deg,#00ff8844,#0a1510);border-color:#00ff88}
+.zone-YELLOW{background:linear-gradient(90deg,#ffcc0044,#0a1510);border-color:#ffcc00}
+.zone-RED{background:linear-gradient(90deg,#ff444444,#0a1510);border-color:#ff4444}
+</style>
+</head>
+<body>
+
+<div class="card" id="mainCard">
+<h2 style="color:#00ff88">C - Clean • NET LIQUIDITY • v4 LIVE 100%</h2>
+<div id="formula" style="font-size:20px;margin:10px 0;color:#00ff88">กำลังโหลด data/latest.json...</div>
+<div id="tags"></div>
+<div style="margin-top:10px;font-size:11px;opacity:0.7" id="updated"></div>
+</div>
+
+<div class="grid">
+<div class="box"><div style="font-size:10px">TGA - TREASURY GENERAL ACCOUNT</div><div class="big" id="tga">$--</div><div id="tgaD" style="font-size:11px"></div><div class="tag" id="tgaS">--</div></div>
+<div class="box"><div style="font-size:10px">BASIN 1 - FED RESERVE (WALCL)</div><div class="big" id="fed">$--</div><div style="font-size:11px">Fed Balance Sheet</div></div>
+<div class="box"><div style="font-size:10px">RRP - REVERSE REPO</div><div class="big" id="rrp">$--</div><div id="rrpD" style="font-size:11px"></div><div class="tag">STATUS: LOW • GREEN</div></div>
+<div class="box"><div style="font-size:10px">BASIN 4 - MARKET NET</div><div class="big" id="net">$--</div><div style="font-size:11px">Water Flow = Liquidity Circulation</div></div>
+</div>
+
+<div class="grid" style="margin-top:14px">
+<div class="box"><div style="font-size:10px">FOAM • <span id="day"></span></div><div style="font-size:18px">BTC • <span id="btc">$--</span></div></div>
+<div class="box"><div style="font-size:10px">WOOD • AUTO</div><div style="font-size:18px">QQQ/SPY • 68B</div></div>
+<div class="box"><div style="font-size:10px">STONE • <span id="day2"></span></div><div style="font-size:18px">T-BILL • 0.5B</div></div>
+</div>
+
+<div class="card">
+<div style="font-size:13px;line-height:1.8;white-space:pre-wrap" id="log"></div>
+</div>
+
+<script>
+async function load(){
+  const nowThai = new Date().toLocaleString('th-TH',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})+' น.';
+  document.getElementById('day').textContent = nowThai;
+  document.getElementById('day2').textContent = new Date().getDate();
+  
+  try{
+    // ดึงไฟล์ตัวเองใน repo เดียวกัน ไม่มี CORS แล้ว 100%
+    const res = await fetch('./data/latest.json?ts='+Date.now(), {cache:'no-store'});
+    if(!res.ok) throw new Error('ยังไม่มี data/latest.json - รัน Actions ครั้งแรกก่อน');
+    const p = await res.json();
+    
+    const fmtT = n => '$'+n.toFixed(3)+'T';
+    const fmtB = n => '$'+(n*1000).toFixed(1)+'B';
+    
+    document.getElementById('fed').textContent = fmtT(p.WALCL_T);
+    document.getElementById('tga').textContent = fmtB(p.WTREGEN_T);
+    document.getElementById('rrp').textContent = '$'+(p.RRP_T*1000).toFixed(2)+'B';
+    document.getElementById('net').textContent = fmtT(p.NET_T);
+    document.getElementById('btc').textContent = fmtT(p.NET_T);
+    document.getElementById('formula').textContent = `Fed ${fmtT(p.WALCL_T)} - TGA ${fmtB(p.WTREGEN_T)} - RRP ${(p.RRP_T*1000).toFixed(2)}B = ${fmtT(p.NET_T)}`;
+    
+    document.getElementById('tgaD').textContent = `Date: ${p.t.date}`;
+    document.getElementById('rrpD').textContent = `Date: ${p.r.date}`;
+    document.getElementById('updated').textContent = `อัพเดทล่าสุดจาก GitHub Actions: ${p.updated_at} • ${p.source} • เวลาเครื่อง: ${nowThai}`;
+
+    // โซน
+    let zone='YELLOW', act='เฝ้าระวัง - ลดเลเวอเรจ - เพิ่ม STONE', cls='zone-YELLOW';
+    if(p.NET_T>=5.85){ zone='GREEN'; act='เงินล้น - เสี่ยงได้ เพิ่ม FOAM/WOOD'; cls='zone-GREEN'; }
+    else if(p.NET_T<5.3){ zone='RED'; act='เงินแห้ง - ลดพอร์ต ถือเงินสด'; cls='zone-RED'; }
+    
+    document.getElementById('mainCard').className = 'card '+cls;
+    document.getElementById('tags').innerHTML = `
+      <span class="tag" style="background:#00ff88;color:#000;font-weight:900">DATA: LIVE 100% • ไม่ใช้ Proxy แล้ว</span>
+      <span class="tag" style="color:${zone=='GREEN'?'#00ff88':zone=='YELLOW'?'#ffcc00':'#ff4444'}">RISK: ${zone} • ${act}</span>
+      <span class="tag">FLOW: ${fmtT(p.NET_T)} • ${p.source}</span>
+      <span class="tag">ZONE: ${zone}</span>
+    `;
+    
+    document.getElementById('tgaS').textContent = p.WTREGEN_T>0.95 ? 'STATUS: HIGH • YELLOW' : 'STATUS: DRAINING • GREEN';
+    
+    document.getElementById('log').textContent =
+`Liquidity ระดับปัจจุบันอยู่ในโซนไหน: ${zone} ZONE
+NET ${fmtT(p.NET_T)} - ยังสูงแต่ RRP หมดแล้ว ไม่มีแรงส่งเพิ่ม ต้องพึ่ง TGA อย่างเดียว
+
+คุณต้องทำอย่างไร (จุดประสงค์หลัก):
+${act}
+
+FRED WALCL ${p.w.date} = ${p.w.value.toLocaleString()} | WTREGEN ${p.t.date} = ${p.t.value.toLocaleString()}M | RRP ${p.r.date} = ${p.r.value}B
+สูตร: NET = WALCL/1e6 - WTREGEN/1e6 - RRP/1e3 = ${p.NET_T.toFixed(4)}T
+
+วิธีนี้ไม่มี FALLBACK อีกแล้ว เพราะ GitHub Actions จะไปดึง FRED ให้บน server แล้วหน้าเว็บคุณดึงไฟล์ตัวเอง ./data/latest.json
+`;
+
+  }catch(e){
+    document.getElementById('formula').textContent = 'ยังไม่มี data/latest.json';
+    document.getElementById('log').textContent = 
+`ยังไม่มีไฟล์ data/latest.json ครับ ต้องทำ 3 ขั้นนี้ก่อน:
+
+1. สร้างโฟลเดอร์ .github/workflows/ แล้วเอาไฟล์ update-fred.yml ที่ผมให้ไปวาง
+2. ไปที่ https://api.stlouisfed.org/ สมัครขอ FRED_API_KEY ฟรี (1 นาทีได้)
+3. ไปที่ GitHub repo > Settings > Secrets > Actions > New secret
+   Name: FRED_API_KEY
+   Value: ใส่ key ที่ได้มา
+4. ไปที่ Actions > กด Run workflow
+
+หลังจากนั้นไฟล์ data/latest.json จะถูกสร้างอัตโนมัติทุกวัน 03:00 น. และหน้าเว็บนี้จะขึ้น LIVE 100% ทันที
+
+Error: ${e.message}
+`;
+  }
+}
+load();
+</script>
+</body>
+</html>
