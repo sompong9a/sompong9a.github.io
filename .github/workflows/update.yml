@@ -8,22 +8,31 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - run: |
+      - name: Fetch
+        run: |
           mkdir -p data
           python3 << 'PY'
-          import json, urllib.request, os
-          KEY = "868312c0c2cce8f78b0bd5e57f8f172a"
-            u = f"https://api.stlouisfed.org/fred/series/observations?series_id={s}&api_key={KEY}&file_type=json&sort_order=desc&limit=1"
-            return json.loads(urllib.request.urlopen(u).read())['observations'][0]
-          w=get('WALCL'); t=get('WTREGEN'); r=get('RRPONTSYD')
-          net=float(w['value'])/1e6-float(t['value'])/1e6-float(r['value'])/1e3
-          data={"NET_T":net,"updated_at":w['date'],"source":"LIVE","w":w,"t":t,"r":r}
-          open('data/latest.json','w').write(json.dumps(data,indent=2))
-          print("LIVE NET",net)
+          import json, urllib.request
+          KEY="868312c0c2cce8f78b0bd5e57f8f172a"
+          def get(sid):
+              url="https://api.stlouisfed.org/fred/series/observations?series_id="+sid+"&api_key="+KEY+"&file_type=json&sort_order=desc&limit=1"
+              j=json.loads(urllib.request.urlopen(url).read())
+              return j['observations'][0]
+          w=get("WALCL")
+          t=get("WTREGEN")
+          r=get("RRPONTSYD")
+          walcl=float(w["value"])
+          wt=float(t["value"])
+          rrp=float(r["value"])
+          net=walcl/1000000-wt/1000000-rrp/1000
+          out={"NET_T":net,"WALCL_T":walcl/1000000,"WTREGEN_T":wt/1000000,"RRP_T":rrp/1000,"w":w,"t":t,"r":r,"updated_at":w["date"],"source":"LIVE"}
+          open("data/latest.json","w").write(json.dumps(out,indent=2))
+          print(out)
           PY
-      - run: |
+      - name: Push
+        run: |
           git config user.name "bot"
           git config user.email "bot@bot.com"
           git add data/latest.json
-          git commit -m "live" || true
+          git commit -m "LIVE" || true
           git push
