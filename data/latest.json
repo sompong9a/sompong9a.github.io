@@ -1,0 +1,26 @@
+{
+  "NET_T": 5.852548,
+  "WALCL_T": 6.740619,
+  "WTREGEN_T": 0.883335,
+  "RRP_T": 0.004736,
+  "w": {
+    "realtime_start": "2026-09-10",
+    "realtime_end": "2026-09-10",
+    "date": "2026-09-09",
+    "value": "6740619"
+  },
+  "t": {
+    "realtime_start": "2026-09-10",
+    "realtime_end": "2026-09-10",
+    "date": "2026-09-09",
+    "value": "883335"
+  },
+  "r": {
+    "realtime_start": "2026-09-10",
+    "realtime_end": "2026-09-10",
+    "date": "2026-09-10",
+    "value": "4.736"
+  },
+  "updated_at": "2026-09-09",
+  "source": "LIVE"
+}
